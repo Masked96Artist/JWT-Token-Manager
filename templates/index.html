@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Token Manager - Professional Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-key"></i>
+                <h1>JWT Token Manager</h1>
+            </div>
+            <p class="subtitle">A professional tool for JWT token encoding and decoding</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="decode">
+                <i class="fas fa-unlock"></i> Decode
+            </button>
+            <button class="tab-btn" data-tab="encode">
+                <i class="fas fa-lock"></i> Encode
+            </button>
+        </div>
+
+        <div class="tab-content active" id="decode">
+            <div class="card">
+                <h2><i class="fas fa-unlock-alt"></i> Decode JWT Token</h2>
+                <form id="decode-form" action="/decode" method="POST">
+                    <div class="form-group">
+                        <label for="jwt-input">JWT Token</label>
+                        <textarea id="jwt-input" name="token" placeholder="Paste your JWT token here..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary">
+                            <i class="fas fa-search"></i> Decode
+                        </button>
+                        <button type="reset" class="btn secondary">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                </form>
+
+                <div class="result-section" id="decode-result">
+                    {% if decoded_token %}
+                    <div class="decoded-content">
+                        <div class="token-part">
+                            <h3><i class="fas fa-heading"></i> Header</h3>
+                            <pre class="json">{{ decoded_token.header }}</pre>
+                        </div>
+                        <div class="token-part">
+                            <h3><i class="fas fa-file-alt"></i> Payload</h3>
+                            <pre class="json">{{ decoded_token.payload }}</pre>
+                        </div>
+                        <div class="token-part">
+                            <h3><i class="fas fa-signature"></i> Signature</h3>
+                            <pre>{{ decoded_token.signature }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if decode_error %}
+                    <div class="alert error">
+                        <i class="fas fa-exclamation-triangle"></i> {{ decode_error }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="encode">
+            <div class="card">
+                <h2><i class="fas fa-lock-alt"></i> Encode JWT Token</h2>
+                <form id="encode-form" action="/encode" method="POST">
+                    <div class="collapsible">
+                        <div class="collapsible-header">
+                            <h3><i class="fas fa-heading"></i> Header</h3>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="collapsible-content">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label for="alg">Algorithm</label>
+                                        <select id="alg" name="alg">
+                                            <option value="HS256">HS256</option>
+                                            <option value="HS384">HS384</option>
+                                            <option value="HS512">HS512</option>
+                                            <option value="none">none</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label for="typ">Type</label>
+                                        <input type="text" id="typ" name="typ" value="JWT">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible">
+                        <div class="collapsible-header">
+                            <h3><i class="fas fa-file-alt"></i> Payload</h3>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="collapsible-content">
+                            <div class="claims-container" id="claims-container">
+                                <!-- Default claims -->
+                                <div class="claim-row">
+                                    <div class="claim-key">
+                                        <input type="text" name="claim_keys[]" placeholder="Claim Key" value="sub">
+                                    </div>
+                                    <div class="claim-value">
+                                        <input type="text" name="claim_values[]" placeholder="Claim Value" value="1234567890">
+                                    </div>
+                                    <button type="button" class="btn icon remove-claim">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="claim-row">
+                                    <div class="claim-key">
+                                        <input type="text" name="claim_keys[]" placeholder="Claim Key" value="name">
+                                    </div>
+                                    <div class="claim-value">
+                                        <input type="text" name="claim_values[]" placeholder="Claim Value" value="John Doe">
+                                    </div>
+                                    <button type="button" class="btn icon remove-claim">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="claim-row">
+                                    <div class="claim-key">
+                                        <input type="text" name="claim_keys[]" placeholder="Claim Key" value="iat">
+                                    </div>
+                                    <div class="claim-value">
+                                        <input type="text" name="claim_values[]" placeholder="Claim Value" value="1516239022">
+                                    </div>
+                                    <button type="button" class="btn icon remove-claim">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-claim" class="btn secondary">
+                                <i class="fas fa-plus"></i> Add Claim
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="collapsible">
+                        <div class="collapsible-header">
+                            <h3><i class="fas fa-key"></i> Secret</h3>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="collapsible-content">
+                            <div class="form-group">
+                                <label for="secret">Secret Key (for HS256/HS384/HS512)</label>
+                                <input type="text" id="secret" name="secret" value="your-256-bit-secret">
+                                <button type="button" id="generate-secret" class="btn secondary">
+                                    <i class="fas fa-random"></i> Generate Random Secret
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary">
+                            <i class="fas fa-lock"></i> Encode
+                        </button>
+                        <button type="reset" class="btn secondary">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                </form>
+
+                <div class="result-section" id="encode-result">
+                    {% if encoded_token %}
+                    <div class="token-result">
+                        <h3><i class="fas fa-check-circle"></i> JWT Token</h3>
+                        <pre id="token-output">{{ encoded_token }}</pre>
+                        <div class="token-actions">
+                            <button id="copy-token" class="btn secondary">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if encode_error %}
+                    <div class="alert error">
+                        <i class="fas fa-exclamation-triangle"></i> {{ encode_error }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 JWT Token Manager | Professional Tool</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
